@@ -17,3 +17,5 @@ main()
     console.error(error);
     process.exit(1);
   });
+
+//Contract deployed to: 0x6A4272a785Fc098f5EC70C21dB1B1e7DAA178fB1
