@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 import Web3Modal from "web3modal";
-import { providers } from "ethers";
+import { Contract, providers } from "ethers";
 
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
@@ -33,7 +33,15 @@ export default function Home() {
       console.error(err);
     }
   };
-
+  // checkIfAddressInWhitelist: Checks if the address is in whitelist
+  const checkIfAddressIsWhitelisted = async () => {
+    try {
+      const signer = getProviderOrSigner(true);
+      const whitelistContract = new Contract();
+    } catch (err) {
+      console.error(err);
+    }
+  };
   //connectWallet: Connects the MetaMask wallet
   const connectWallet = async () => {
     try {
