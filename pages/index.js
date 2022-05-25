@@ -4,10 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 import Web3Modal from "web3modal";
 import { Contract, providers } from "ethers";
+import { WHITELIST_CONTRACT_ADDRESS } from "../constants";
+import { abi } from "../constants";
 
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
+  // joinedWhitelist keeps track of whether the current metamask address has joined the Whitelist or not
+  const [joinedWhitelist, setJoinedWhitelist] = useState(false);
   // numberOfWhitelisted tracks the number of addresses's whitelisted
   const [numOfWhitelisted, setNumOfWhitelisted] = useState(0);
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
@@ -37,7 +41,41 @@ export default function Home() {
   const checkIfAddressIsWhitelisted = async () => {
     try {
       const signer = getProviderOrSigner(true);
-      const whitelistContract = new Contract();
+      // We connect to the Contract using a Provider, so we will only
+      // have read-only access to the Contract
+      const whitelistContract = new Contract(
+        WHITELIST_CONTRACT_ADDRESS,
+        abi,
+        signer
+      );
+      // call the numAddressesWhitelisted from the contract
+      const address = await signer.getAddress();
+      const _joinedWhitelist = await whitelistContract.whitelistedAddresses(
+        address
+      );
+      setJoinedWhitelist(_joinedWhitelist);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  //getNumberOfWhitelisted:  gets the number of whitelisted addresses
+
+  const getNumberOfWhitelisted = async () => {
+    try {
+      // Get the provider from web3Modal, which in our case is MetaMask
+      // No need for the Signer here, as we are only reading state from the blockchain
+      const provider = await getProviderOrSigner();
+      // We connect to the Contract using a Provider, so we will only
+      // have read-only access to the Contract
+      const whitelistContract = new Contract(
+        WHITELIST_CONTRACT_ADDRESS,
+        abi,
+        provider
+      );
+      // call the numAddressesWhitelisted from the contract
+      const _numOfWhitelisted =
+        await whitelistContract.numAddressesWhitelisted();
+      setNumOfWhitelisted(_numOfWhitelisted);
     } catch (err) {
       console.error(err);
     }
