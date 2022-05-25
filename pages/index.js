@@ -12,6 +12,9 @@ export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false);
   // joinedWhitelist keeps track of whether the current metamask address has joined the Whitelist or not
   const [joinedWhitelist, setJoinedWhitelist] = useState(false);
+  // loading is set to true when we are waiting for a transaction to get mined
+  const [loading, setLoading] = useState(false);
+
   // numberOfWhitelisted tracks the number of addresses's whitelisted
   const [numOfWhitelisted, setNumOfWhitelisted] = useState(0);
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
@@ -33,6 +36,30 @@ export default function Home() {
         return signer;
       }
       return web3Provider;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const addAddressToWhitelist = async () => {
+    try {
+      // We need a Signer here since this is a 'write' transaction.
+      const signer = await getProviderOrSigner(true);
+      // Create a new instance of the Contract with a Signer, which allows
+      // update methods
+      const whitelistContract = new Contract(
+        WHITELIST_CONTRACT_ADDRESS,
+        abi,
+        signer
+      );
+      // call the addAddressToWhitelist from the contract
+      const tx = await whitelistContract.addAddressToWhitelist();
+      setLoading(true);
+      // wait for the transaction to get mined
+      await tx.wait();
+      setLoading(false);
+      // get the updated number of addresses in the whitelist
+      await getNumberOfWhitelisted();
+      setJoinedWhitelist(true);
     } catch (err) {
       console.error(err);
     }
@@ -92,6 +119,35 @@ export default function Home() {
     }
   };
 
+  /*
+    renderButton: Returns a button based on the state of the dapp
+  */
+  const renderButton = () => {
+    if (walletConnected) {
+      if (joinedWhitelist) {
+        return (
+          <div className={styles.description}>
+            Thanks for joining the Whitelist!
+          </div>
+        );
+      } else if (loading) {
+        return <button className={styles.button}>Loading...</button>;
+      } else {
+        return (
+          <button onClick={addAddressToWhitelist} className={styles.button}>
+            Join the Whitelist
+          </button>
+        );
+      }
+    } else {
+      return (
+        <button onClick={connectWallet} className={styles.button}>
+          Connect your wallet
+        </button>
+      );
+    }
+  };
+
   // useEffects are used to react to changes in state of the website
   // The array at the end of function call represents what state changes will trigger this effect
   // In this case, whenever the value of `walletConnected` changes - this effect will be called
@@ -123,6 +179,7 @@ export default function Home() {
         <div className={styles.description}>
           {numOfWhitelisted} have already joined the Whitelist
         </div>
+        {renderButton()}
         <div>
           <img className={styles.image} src="./crypto-devs.svg" alt="" />
         </div>
