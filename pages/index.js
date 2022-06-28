@@ -188,9 +188,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className={styles.footer}>
-        Made with &#10084; by Crypto Devs
-      </footer>
+      <footer className={styles.footer}>Made with &#10084; by Alex Muia</footer>
     </div>
   );
 }
